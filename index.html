@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DimenWiki - Free Wiki Network</title>
+    <title>DimenWiki Archive Cluster</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root { 
@@ -16,21 +16,21 @@
             --accent-hover: #6d28d9; 
             --border: #e2e8f0; 
         }
+        
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg-dark); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
         
-        #sidebar { width: 300px; background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.02); }
-        h1 { font-size: 1.4rem; margin-bottom: 15px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
+        #sidebar { width: 290px; background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.02); }
+        h1 { font-size: 1.25rem; margin-bottom: 15px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
         
-        /* Auth Portal System styling */
-        .auth-container { padding: 15px; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px; }
-        .auth-toggle-links { display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.8rem; }
-        .auth-toggle-links a { color: var(--accent); text-decoration: none; cursor: pointer; }
-        .input-box { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 8px; font-size: 0.85rem; background: white; }
+        .custom-login-box { padding: 12px; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px; font-size: 0.85rem; }
+        .login-input { width: 100%; padding: 6px 10px; border: 1px solid var(--border); border-radius: 4px; margin-top: 5px; margin-bottom: 8px; font-size: 0.8rem; background: white; }
         
-        .btn { background: var(--accent); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; margin-bottom: 15px; transition: background 0.2s; text-align: center; }
+        .creator-ctrl { display: none; }
+        
+        .btn { background: var(--accent); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; margin-bottom: 15px; transition: background 0.2s; }
         .btn:hover { background: var(--accent-hover); }
-        .btn-sm { padding: 6px; font-size: 0.8rem; margin: 0; }
+        .btn-sm { padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; margin: 0; }
         
         #page-list { list-style: none; overflow-y: auto; flex-grow: 1; }
         #page-list li { padding: 10px; border-radius: 6px; cursor: pointer; margin-bottom: 5px; color: var(--text-muted); font-weight: 500; transition: all 0.2s; }
@@ -41,44 +41,34 @@
         #top-bar { padding: 20px 40px; background: var(--bg-sidebar); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         #current-title { font-size: 2rem; font-weight: 700; color: var(--text-main); }
         #content-area { padding: 40px; flex-grow: 1; overflow-y: auto; }
-        
         .panel { display: none; height: 100%; }
         .panel.active { display: block; }
         
         #view-panel { font-size: 1.1rem; line-height: 1.7; color: #334155; }
-        #view-panel h1, #view-panel h2 { margin: 25px 0 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+        #view-panel h1, #view-panel h2 { margin: 25px 0 10px; color: var(--text-main); border-bottom: 1px solid var(--border); padding-bottom: 5px; }
         
         #edit-panel { display: flex; flex-direction: column; gap: 15px; }
-        .editor-field { background: white; border: 1px solid var(--border); color: var(--text-main); padding: 12px; border-radius: 6px; font-size: 1rem; width: 100%; }
-        textarea.editor-field { resize: none; flex-grow: 1; min-height: 400px; font-family: monospace; }
-        .creator-ctrl { display: none; }
+        .input-field { background: var(--bg-sidebar); border: 1px solid var(--border); color: var(--text-main); padding: 12px; border-radius: 6px; font-size: 1rem; width: 100%; }
+        textarea.input-field { resize: none; flex-grow: 1; min-height: 400px; font-family: monospace; }
+        .button-group { display: flex; gap: 10px; justify-content: flex-end; }
     </style>
 </head>
 <body>
 
     <div id="sidebar">
-        <h1 id="wiki-logo">🌌 DimenWiki</h1>
+        <h1 id="wiki-brand">🌌 DimenWiki</h1>
         
-        <div class="auth-container" id="auth-panel">
-            <div id="login-form">
-                <span style="font-weight:700; display:block; margin-bottom:8px;">Sign In</span>
-                <input type="text" id="login-user" class="input-box" placeholder="Username">
-                <input type="password" id="login-pass" class="input-box" placeholder="Password">
-                <button class="btn btn-sm" onclick="handleAuth('login')">Log In</button>
-                <div class="auth-toggle-links">Don't have a wiki? <a onclick="toggleForm('signup')">Sign Up</a></div>
+        <div class="custom-login-box" id="login-container">
+            <div id="logged-out-view">
+                <span style="font-weight: 600; color: var(--text-muted);">🔒 Staff Sign In</span>
+                <input type="text" id="username-input" class="login-input" placeholder="Username">
+                <input type="password" id="password-input" class="login-input" placeholder="Password PIN">
+                <button class="btn btn-sm" style="width: 100%;" onclick="attemptLogin()">Log In</button>
             </div>
-            <div id="signup-form" style="display:none;">
-                <span style="font-weight:700; display:block; margin-bottom:8px;">Create Free Wiki</span>
-                <input type="text" id="reg-user" class="input-box" placeholder="Username">
-                <input type="password" id="reg-pass" class="input-box" placeholder="Password">
-                <input type="text" id="reg-wiki" class="input-box" placeholder="Wiki Name (e.g., MyModWiki)">
-                <button class="btn btn-sm" onclick="handleAuth('signup')">Launch Free Wiki</button>
-                <div class="auth-toggle-links">Have an account? <a onclick="toggleForm('login')">Log In</a></div>
-            </div>
-            <div id="logged-in-panel" style="display:none; text-align:center;">
-                <span id="welcome-user" style="font-weight:700; color:#16a34a; display:block;">Active Creator</span>
-                <span id="active-wiki-display" style="font-size:0.8rem; color:var(--text-muted); display:block; margin-bottom:8px;">Wiki Name</span>
-                <button class="btn btn-sm" style="background:#ef4444;" onclick="handleLogout()">Sign Out</button>
+            <div id="logged-in-view" style="display: none; text-align: center;">
+                <span id="welcome-msg" style="font-weight: 600; color: #16a34a; display: block; margin-bottom: 4px;">🟢 Session Active</span>
+                <span id="role-badge" style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 8px; text-transform: uppercase;">Role</span>
+                <button class="btn btn-sm" style="background: #ef4444;" onclick="logoutCreator()">Lock Account</button>
             </div>
         </div>
 
@@ -88,30 +78,43 @@
 
     <div id="main-content">
         <div id="top-bar">
-            <h2 id="current-title">Welcome to the Network</h2>
+            <h2 id="current-title">Loading Cluster...</h2>
             <button id="edit-btn" class="btn creator-ctrl" style="margin:0; width:auto;" onclick="switchToEdit()">Edit Page</button>
         </div>
         <div id="content-area">
-            <div id="view-panel" class="panel active">Loading wiki nodes...</div>
+            <div id="view-panel" class="panel active">Parsing configuration paths...</div>
             
             <div id="edit-panel" class="panel">
-                <input type="text" id="edit-title" class="editor-field" placeholder="Page Title">
-                <textarea id="edit-text" class="editor-field" placeholder="Write contents in Markdown layout..."></textarea>
-                <div style="display:flex; gap:10px; justify-content:flex-end;">
-                    <button class="btn" style="background:transparent; border:1px solid var(--border); color:var(--text-muted); width:auto;" onclick="cancelEdit()">Cancel</button>
-                    <button class="btn" style="width:auto;" onclick="savePageToDatabase()">💾 Save Directly</button>
+                <input type="text" id="edit-title" class="input-field" placeholder="Page Title">
+                <textarea id="edit-text" class="input-field" placeholder="Write document structure in Markdown format..."></textarea>
+                <div class="button-group">
+                    <button class="btn" style="background:transparent; border:1px solid var(--border); color: var(--text-muted);" onclick="cancelEdit()">Cancel</button>
+                    <button class="btn" style="width:auto; background: #94a3b8; cursor: not-allowed;" disabled title="Saving changes is currently local only.">💾 Saving Disabled</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script type="module">
-        // Dummy client storage system for temporary demonstration. 
-        // Can be bound directly to a free cloud engine (like Supabase) later!
+        const host = window.location.hostname;
+        const parts = host.split('.');
+        
+        const CONFIG = {
+            OWNER: "dimen-wiki", 
+            REPO: (parts.length >= 4 && parts[0] !== "www") ? parts[0] : "main-hub"
+        };
+
+        // 👥 Fixed Staff Accounts Database
+        const USERS_DATABASE = {
+            "patata61": { pin: "dimen123", role: "Owner" }, // 👈 Fixed master user account
+            "tester1": { pin: "0000", role: "Mod Tester" }
+        };
+
+        // Initialize default localized wiki template tracking
         let LOCAL_WIKIS = JSON.parse(localStorage.getItem("dimen_network_wikis")) || {
             "home": {
                 name: "DimenWiki Hub",
-                owner: "patata61",
+                owner: "patata61", // 👈 Set default root folder owner
                 pages: {
                     "Home": "# Welcome to the Free Wiki Network\n\nSign up in the sidebar to create your own professional wiki right now!",
                     "About": "# About the Platform\n\nThis system allows any developer to deploy their own standalone archive workspace."
@@ -119,85 +122,66 @@
             }
         };
 
-        let activeWikiKey = "home";
-        let currentUser = localStorage.getItem("dimen_active_user") || null;
+        let wikiData = {};
         let currentPage = "Home";
+        let isUserAuthenticated = false;
 
-        // Handle path extraction from subdomains
-        const host = window.location.hostname;
-        const parts = host.split('.');
-        if (parts.length >= 4 && parts[0] !== "www" && LOCAL_WIKIS[parts[0]]) {
-            activeWikiKey = parts[0];
-        }
+        document.getElementById('wiki-brand').textContent = `🌌 ${CONFIG.REPO.toUpperCase()}`;
 
-        window.toggleForm = function(target) {
-            document.getElementById('login-form').style.display = target === 'login' ? 'block' : 'none';
-            document.getElementById('signup-form').style.display = target === 'signup' ? 'block' : 'none';
-        }
-
-        window.handleAuth = function(action) {
-            if (action === 'signup') {
-                const user = document.getElementById('reg-user').value.trim().toLowerCase();
-                const pass = document.getElementById('reg-pass').value.trim();
-                const wikiName = document.getElementById('reg-wiki').value.trim();
-                const wikiSlug = wikiName.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
-
-                if(!user || !pass || !wikiName) return alert("Fill in all credentials!");
-                if(LOCAL_WIKIS[wikiSlug]) return alert("This wiki name or subdomain is already claimed!");
-
-                LOCAL_WIKIS[wikiSlug] = {
-                    name: wikiName,
-                    owner: user,
-                    password: pass,
-                    pages: { "Home": `# Welcome to the ${wikiName} Wiki\n\nUse your panel workspace editor to customize this page layout.` }
-                };
-                localStorage.setItem("dimen_network_wikis", JSON.stringify(LOCAL_WIKIS));
-                currentUser = user;
-                activeWikiKey = wikiSlug;
-                localStorage.setItem("dimen_active_user", user);
-                localStorage.setItem("dimen_active_wiki", wikiSlug);
-            } else {
-                const user = document.getElementById('login-user').value.trim().toLowerCase();
-                const pass = document.getElementById('login-pass').value.trim();
-                
-                let foundWiki = Object.keys(LOCAL_WIKIS).find(k => LOCAL_WIKIS[k].owner === user && LOCAL_WIKIS[k].password === pass);
-                if (!foundWiki) return alert("Invalid username or password match.");
-                
-                currentUser = user;
-                activeWikiKey = foundWiki;
-                localStorage.setItem("dimen_active_user", user);
-                localStorage.setItem("dimen_active_wiki", foundWiki);
-            }
-            window.location.reload();
-        }
-
-        window.handleLogout = function() {
-            localStorage.removeItem("dimen_active_user");
-            localStorage.removeItem("dimen_active_wiki");
-            window.location.reload();
-        }
-
-        function syncUI() {
-            const wiki = LOCAL_WIKIS[activeWikiKey];
-            document.getElementById('wiki-logo').textContent = `🌌 ${wiki.name}`;
+        function checkSession() {
+            const savedUser = localStorage.getItem("dimenwiki_active_user");
+            const savedRole = localStorage.getItem("dimenwiki_active_role");
             
-            if (currentUser && wiki.owner === currentUser) {
-                document.getElementById('login-form').style.display = 'none';
-                document.getElementById('signup-form').style.display = 'none';
-                document.getElementById('logged-in-panel').style.display = 'block';
-                document.getElementById('welcome-user').textContent = `🟢 Active: ${currentUser.toUpperCase()}`;
-                document.getElementById('active-wiki-display').textContent = `Subdomain: ${activeWikiKey}`;
-                document.querySelectorAll('.creator-ctrl').forEach(el => el.style.display = 'block');
+            if (savedUser && savedRole) {
+                isUserAuthenticated = true;
+                document.getElementById('logged-out-view').style.display = 'none';
+                document.getElementById('logged-in-view').style.display = 'block';
+                document.getElementById('welcome-msg').textContent = `🟢 Active: ${savedUser}`;
+                document.getElementById('role-badge').textContent = `↳ Role: ${savedRole}`;
+                
+                // Permission Check: Only show editing tools if the logged in user owns the current wiki
+                const currentWikiOwner = LOCAL_WIKIS["home"].owner; 
+                if (savedUser === currentWikiOwner) {
+                    document.querySelectorAll('.creator-ctrl').forEach(el => el.style.display = 'block');
+                }
+                return true;
             }
+            return false;
+        }
 
+        window.attemptLogin = function() {
+            const userVal = document.getElementById('username-input').value.trim().toLowerCase();
+            const passVal = document.getElementById('password-input').value.trim();
+            
+            if (USERS_DATABASE[userVal] && USERS_DATABASE[userVal].pin === passVal) {
+                localStorage.setItem("dimenwiki_active_user", userVal);
+                localStorage.setItem("dimenwiki_active_role", USERS_DATABASE[userVal].role);
+                window.location.reload();
+            } else {
+                alert("Incorrect login credentials.");
+            }
+        }
+
+        window.logoutCreator = function() {
+            localStorage.removeItem("dimenwiki_active_user");
+            localStorage.removeItem("dimenwiki_active_role");
+            window.location.reload();
+        }
+
+        async function fetchWikiData() {
+            checkSession();
+            
+            // Load base pages directly out of local configuration tracking arrays
+            wikiData = LOCAL_WIKIS["home"].pages;
+            
             renderSidebar();
-            loadPage(currentPage in wiki.pages ? currentPage : Object.keys(wiki.pages)[0]);
+            loadPage(currentPage in wikiData ? currentPage : Object.keys(wikiData)[0]);
         }
 
         function renderSidebar() {
             const list = document.getElementById('page-list');
             list.innerHTML = '';
-            Object.keys(LOCAL_WIKIS[activeWikiKey].pages).sort().forEach(title => {
+            Object.keys(wikiData).sort().forEach(title => {
                 const li = document.createElement('li');
                 li.textContent = title;
                 if(title === currentPage) li.classList.add('active');
@@ -209,43 +193,37 @@
         function loadPage(title) {
             currentPage = title;
             document.getElementById('current-title').textContent = title;
-            document.getElementById('view-panel').innerHTML = marked.parse(LOCAL_WIKIS[activeWikiKey].pages[title] || "");
+            document.getElementById('view-panel').innerHTML = marked.parse(wikiData[title] || "");
             document.getElementById('edit-panel').classList.remove('active');
             document.getElementById('view-panel').classList.add('active');
-            if (currentUser && LOCAL_WIKIS[activeWikiKey].owner === currentUser) {
+            
+            const savedUser = localStorage.getItem("dimenwiki_active_user");
+            if (isUserAuthenticated && savedUser === LOCAL_WIKIS["home"].owner) {
                 document.getElementById('edit-btn').style.display = 'block';
+            } else {
+                document.getElementById('edit-btn').style.display = 'none';
             }
             renderSidebar();
         }
 
-        window.switchToEdit = function() {
-            document.getElementById('edit-title').value = currentPage === "New Page" ? "" : currentPage;
-            document.getElementById('edit-text').value = LOCAL_WIKIS[activeWikiKey].pages[currentPage] || "";
+        function switchToEdit() {
+            document.getElementById('edit-title').value = currentPage === "New Page Entry" ? "" : currentPage;
+            document.getElementById('edit-text').value = wikiData[currentPage] || "";
             document.getElementById('view-panel').classList.remove('active');
             document.getElementById('edit-panel').classList.add('active');
             document.getElementById('edit-btn').style.display = 'none';
         }
 
         window.startNewPage = function() {
-            currentPage = "New Page";
-            document.getElementById('current-title').textContent = "Create New Entry";
-            window.switchToEdit();
+            currentPage = "New Page Entry";
+            document.getElementById('current-title').textContent = "New Page Entry";
+            switchToEdit();
         }
 
-        window.savePageToDatabase = function() {
-            const title = document.getElementById('edit-title').value.trim();
-            const content = document.getElementById('edit-text').value.trim();
-            if(!title || !content) return alert("Fields cannot be empty!");
+        window.cancelEdit = function() { loadPage(Object.keys(wikiData)[0]); }
+        window.switchToEdit = switchToEdit;
 
-            LOCAL_WIKIS[activeWikiKey].pages[title] = content;
-            localStorage.setItem("dimen_network_wikis", JSON.stringify(LOCAL_WIKIS));
-            currentPage = title;
-            loadPage(title);
-        }
-
-        window.cancelEdit = function() { loadPage(Object.keys(LOCAL_WIKIS[activeWikiKey].pages)[0]); }
-
-        syncUI();
+        fetchWikiData();
     </script>
 </body>
 </html>
