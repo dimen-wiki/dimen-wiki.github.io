@@ -64,13 +64,14 @@
         
         <div class="custom-login-box" id="login-container">
             <div id="logged-out-view">
-                <span style="font-weight: 600; color: var(--text-muted);">🔒 Admin Access</span>
+                <span style="font-weight: 600; color: var(--text-muted);">🔒 Staff Sign In</span>
                 <input type="text" id="username-input" class="login-input" placeholder="Username">
                 <input type="password" id="password-input" class="login-input" placeholder="Password PIN">
                 <button class="btn btn-sm" style="width: 100%;" onclick="attemptLogin()">Log In</button>
             </div>
             <div id="logged-in-view" style="display: none; text-align: center;">
-                <span id="welcome-msg" style="font-weight: 600; color: #16a34a; display: block; margin-bottom: 8px;">🟢 Session Active</span>
+                <span id="welcome-msg" style="font-weight: 600; color: #16a34a; display: block; margin-bottom: 4px;">🟢 Session Active</span>
+                <span id="role-badge" style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 8px; text-transform: uppercase;">Role</span>
                 <button class="btn btn-sm" style="background: #ef4444;" onclick="logoutCreator()">Lock Account</button>
             </div>
         </div>
@@ -92,15 +93,13 @@
                 <textarea id="edit-text" class="input-field" placeholder="Write document structure in Markdown format..."></textarea>
                 <div class="button-group">
                     <button class="btn" style="background:transparent; border:1px solid var(--border); color: var(--text-muted);" onclick="cancelEdit()">Cancel</button>
-                    <button class="btn" style="width:auto; background: #94a3b8; cursor: not-allowed;" disabled title="Saving changes is currently locked or disabled.">💾 Saving Disabled</button>
+                    <button class="btn" style="width:auto; background: #94a3b8; cursor: not-allowed;" disabled title="Saving changes directly from the client is currently disabled.">💾 Saving Disabled</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script type="module">
-        // Automatically extracts the subdomain names directly from your browser URL!
-        // E.g. "potassium.dimen-wiki.github.io" automatically switches targets to the "potassium" repository contents.
         const host = window.location.hostname;
         const parts = host.split('.');
         
@@ -109,26 +108,29 @@
             REPO: (parts.length >= 4 && parts[0] !== "www") ? parts[0] : "main-hub"
         };
 
-        // Custom Login Configuration Keys
-        const AUTH_KEYS = {
-            USER: "admin",
-            PASS: "dimen123" // 👈 Set your custom local login password here!
+        // 👥 Multi-Account Configuration System
+        const USERS_DATABASE = {
+            "admin": { pin: "dimen123", role: "Owner" },
+            "patata61": { pin: "9999", role: "Developer" },
+            "tester1": { pin: "0000", role: "Mod Tester" }
         };
 
         let wikiData = {};
         let currentPage = "Home";
-        let isCreatingNew = false;
         let isUserAuthenticated = false;
 
         document.getElementById('wiki-brand').textContent = `🌌 ${CONFIG.REPO.toUpperCase()}`;
 
         function checkSession() {
-            const loggedInState = localStorage.getItem("dimenwiki_custom_auth");
-            if (loggedInState === "true") {
+            const savedUser = localStorage.getItem("dimenwiki_active_user");
+            const savedRole = localStorage.getItem("dimenwiki_active_role");
+            
+            if (savedUser && savedRole) {
                 isUserAuthenticated = true;
                 document.getElementById('logged-out-view').style.display = 'none';
                 document.getElementById('logged-in-view').style.display = 'block';
-                document.getElementById('welcome-msg').textContent = `🟢 Active: ${AUTH_KEYS.USER}`;
+                document.getElementById('welcome-msg').textContent = `🟢 Active: ${savedUser}`;
+                document.getElementById('role-badge').textContent = `↳ Role: ${savedRole}`;
                 document.querySelectorAll('.creator-ctrl').forEach(el => el.style.display = 'block');
                 return true;
             }
@@ -139,8 +141,10 @@
             const userVal = document.getElementById('username-input').value.trim();
             const passVal = document.getElementById('password-input').value.trim();
             
-            if (userVal === AUTH_KEYS.USER && passVal === AUTH_KEYS.PASS) {
-                localStorage.setItem("dimenwiki_custom_auth", "true");
+            // Checks if the user exists and matches their corresponding PIN code
+            if (USERS_DATABASE[userVal] && USERS_DATABASE[userVal].pin === passVal) {
+                localStorage.setItem("dimenwiki_active_user", userVal);
+                localStorage.setItem("dimenwiki_active_role", USERS_DATABASE[userVal].role);
                 window.location.reload();
             } else {
                 alert("Incorrect login credentials.");
@@ -148,7 +152,8 @@
         }
 
         window.logoutCreator = function() {
-            localStorage.removeItem("dimenwiki_custom_auth");
+            localStorage.removeItem("dimenwiki_active_user");
+            localStorage.removeItem("dimenwiki_active_role");
             window.location.reload();
         }
 
@@ -168,7 +173,7 @@
                     }
                 }
                 if (Object.keys(wikiData).length === 0) {
-                    wikiData["Home"] = `# Welcome to ${CONFIG.REPO.toUpperCase()}\n\nThis subdomain archive has successfully loaded. Access your dashboard box to interact with panels.`;
+                    wikiData["Home"] = "# Welcome to ${CONFIG.REPO.toUpperCase()}\n\nThis subdomain archive has successfully loaded. Access your dashboard box to interact with panels.";
                 }
                 renderSidebar();
                 loadPage(currentPage in wikiData ? currentPage : Object.keys(wikiData)[0]);
@@ -183,7 +188,7 @@
             Object.keys(wikiData).sort().forEach(title => {
                 const li = document.createElement('li');
                 li.textContent = title;
-                if(title === currentPage && !isCreatingNew) li.classList.add('active');
+                if(title === currentPage && !isUserAuthenticated) li.classList.add('active');
                 li.onclick = () => loadPage(title);
                 list.appendChild(li);
             });
@@ -191,7 +196,6 @@
 
         function loadPage(title) {
             currentPage = title;
-            isCreatingNew = false;
             document.getElementById('current-title').textContent = title;
             document.getElementById('view-panel').innerHTML = marked.parse(wikiData[title] || "");
             document.getElementById('edit-panel').classList.remove('active');
@@ -201,21 +205,20 @@
         }
 
         function switchToEdit() {
-            document.getElementById('edit-title').value = isCreatingNew ? "" : currentPage;
-            document.getElementById('edit-title').disabled = !isCreatingNew;
-            document.getElementById('edit-text').value = isCreatingNew ? "" : wikiData[currentPage];
+            document.getElementById('edit-title').value = currentPage === "New Page Entry" ? "" : currentPage;
+            document.getElementById('edit-text').value = wikiData[currentPage] || "";
             document.getElementById('view-panel').classList.remove('active');
             document.getElementById('edit-panel').classList.add('active');
             document.getElementById('edit-btn').style.display = 'none';
         }
 
         window.startNewPage = function() {
-            isCreatingNew = true;
+            currentPage = "New Page Entry";
             document.getElementById('current-title').textContent = "New Page Entry";
             switchToEdit();
         }
 
-        window.cancelEdit = function() { loadPage(currentPage); }
+        window.cancelEdit = function() { loadPage(Object.keys(wikiData)[0]); }
         window.switchToEdit = switchToEdit;
 
         fetchWikiData();
