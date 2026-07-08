@@ -3,47 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DimenWiki - The Dimensional Archives</title>
+    <title>DimenWiki - Official Archive</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
+        /* ☀️ Crisp Light Theme Color Palette */
         :root { 
-            --bg-dark: #12131a; 
-            --bg-sidebar: #1a1c24; 
-            --bg-card: #222531; 
-            --text-main: #e2e8f0; 
-            --text-muted: #94a3b8; 
-            --accent: #8b5cf6; 
-            --accent-hover: #7c3aed; 
-            --border: #334155; 
+            --bg-dark: #f8fafc; 
+            --bg-sidebar: #ffffff; 
+            --bg-card: #f1f5f9; 
+            --text-main: #0f172a; 
+            --text-muted: #475569; 
+            --accent: #7c3aed; 
+            --accent-hover: #6d28d9; 
+            --border: #e2e8f0; 
         }
+        
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg-dark); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+        #sidebar { width: 280px; background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.02); }
+        h1 { font-size: 1.25rem; margin-bottom: 20px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
         
-        #sidebar { width: 280px; background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px; }
-        h1 { font-size: 1.25rem; margin-bottom: 20px; color: var(--accent); text-transform: uppercase; }
+        /* Creator Controls (Hidden by default) */
+        .creator-ctrl { display: none; }
+        
         .btn { background: var(--accent); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; margin-bottom: 20px; transition: background 0.2s; }
         .btn:hover { background: var(--accent-hover); }
-        
         #page-list { list-style: none; overflow-y: auto; flex-grow: 1; }
-        #page-list li { padding: 10px; border-radius: 6px; cursor: pointer; margin-bottom: 5px; color: var(--text-muted); transition: all 0.2s; }
-        #page-list li:hover, #page-list li.active { background: var(--bg-card); color: var(--text-main); }
+        #page-list li { padding: 10px; border-radius: 6px; cursor: pointer; margin-bottom: 5px; color: var(--text-muted); font-weight: 500; transition: all 0.2s; }
+        #page-list li:hover { background: var(--bg-card); color: var(--text-main); }
+        #page-list li.active { background: #e0e7ff; color: var(--accent); }
         
-        #main-content { flex-grow: 1; display: flex; flex-direction: column; height: 100%; }
-        #top-bar { padding: 20px 40px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        #current-title { font-size: 2rem; font-weight: 700; }
+        #main-content { flex-grow: 1; display: flex; flex-direction: column; height: 100%; background: var(--bg-dark); }
+        #top-bar { padding: 20px 40px; background: var(--bg-sidebar); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        #current-title { font-size: 2rem; font-weight: 700; color: var(--text-main); }
         #content-area { padding: 40px; flex-grow: 1; overflow-y: auto; }
-        
         .panel { display: none; height: 100%; }
         .panel.active { display: block; }
         
-        #view-panel { font-size: 1.1rem; line-height: 1.7; color: #cbd5e1; }
+        /* Light Theme Typography styling */
+        #view-panel { font-size: 1.1rem; line-height: 1.7; color: #334155; }
         #view-panel h1, #view-panel h2 { margin: 25px 0 10px; color: var(--text-main); border-bottom: 1px solid var(--border); padding-bottom: 5px; }
         #view-panel ul { margin-left: 25px; margin-bottom: 15px; }
-        #view-panel blockquote { background: var(--bg-card); border-left: 4px solid var(--accent); padding: 15px; margin: 20px 0; font-style: italic; }
-        #view-panel code { background: var(--bg-card); padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #f43f5e; }
+        #view-panel blockquote { background: var(--bg-card); border-left: 4px solid var(--accent); padding: 15px; margin: 20px 0; font-style: italic; color: var(--text-muted); border-radius: 0 6px 6px 0; }
+        #view-panel code { background: #fee2e2; padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #dc2626; }
         
         #edit-panel { display: flex; flex-direction: column; gap: 15px; }
-        .input-field { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-main); padding: 12px; border-radius: 6px; font-size: 1rem; width: 100%; }
+        .input-field { background: var(--bg-sidebar); border: 1px solid var(--border); color: var(--text-main); padding: 12px; border-radius: 6px; font-size: 1rem; width: 100%; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); }
         textarea.input-field { resize: none; flex-grow: 1; min-height: 400px; font-family: monospace; }
         .button-group { display: flex; gap: 10px; justify-content: flex-end; }
     </style>
@@ -52,43 +57,54 @@
 
     <div id="sidebar">
         <h1>🌌 DimenWiki</h1>
-        <button class="btn" onclick="startNewPage()">+ Create New Page</button>
+        <button class="btn creator-ctrl" id="new-pg-btn" onclick="startNewPage()">+ Create New Page</button>
         <ul id="page-list"></ul>
     </div>
 
     <div id="main-content">
         <div id="top-bar">
             <h2 id="current-title">Loading...</h2>
-            <button id="edit-btn" class="btn" style="margin:0; width:auto; display:none;" onclick="switchToEdit()">Edit Page</button>
+            <button id="edit-btn" class="btn creator-ctrl" style="margin:0; width:auto;" onclick="switchToEdit()">Edit Page</button>
         </div>
         <div id="content-area">
-            <div id="view-panel" class="panel active">Connecting to the dimenwiki database archive...</div>
+            <div id="view-panel" class="panel active">Synchronizing database...</div>
             
             <div id="edit-panel" class="panel">
-                <input type="text" id="edit-title" class="input-field" placeholder="Page Name (e.g., Twilight Forest)">
-                <textarea id="edit-text" class="input-field" placeholder="Write page content in Markdown format..."></textarea>
+                <input type="text" id="edit-title" class="input-field" placeholder="Page Title">
+                <textarea id="edit-text" class="input-field" placeholder="Write in Markdown..."></textarea>
                 <div class="button-group">
-                    <button class="btn" style="background:transparent; border:1px solid var(--border);" onclick="cancelEdit()">Cancel</button>
-                    <button class="btn" style="width:auto;" onclick="submitToGitHub()">Publish via GitHub</button>
+                    <button class="btn" style="background:transparent; border:1px solid var(--border); color: var(--text-muted);" onclick="cancelEdit()">Cancel</button>
+                    <button class="btn" style="width:auto;" onclick="submitToGitHub()">Save to Archive</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script type="module">
-        // Points directly to your open public organization database tracking system
         const CONFIG = {
-            OWNER: "dimenwiki",
+            OWNER: "dimenwiki", 
             REPO: "dimenwiki.github.io"
         };
 
         let wikiData = {};
         let currentPage = "Home";
         let isCreatingNew = false;
+        let isCreator = false;
+
+        async function checkPermissions() {
+            try {
+                const res = await fetch(`https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}`);
+                const data = await res.json();
+                if (data.permissions && (data.permissions.push || data.permissions.admin)) {
+                    isCreator = true;
+                    document.querySelectorAll('.creator-ctrl').forEach(el => el.style.display = 'block');
+                }
+            } catch (e) { }
+        }
 
         async function fetchWikiData() {
+            await checkPermissions();
             try {
-                // Reads the public directory files completely token-free
                 const res = await fetch(`https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/wiki_data`);
                 if (res.status === 200) {
                     const files = await res.json();
@@ -101,16 +117,13 @@
                         }
                     }
                 }
-                
-                // Fallback homepage template if no files exist yet
                 if (Object.keys(wikiData).length === 0) {
-                    wikiData["Home"] = "# Welcome to DimenWiki\n\nClick the **+ Create New Page** button on the left to add a wiki file directly to the archive cluster!";
+                    wikiData["Home"] = "# Welcome\n\nNo pages found. If you are the creator, make sure you are logged into GitHub in this browser to see the edit panels!";
                 }
-                
                 renderSidebar();
                 loadPage(currentPage in wikiData ? currentPage : Object.keys(wikiData)[0]);
             } catch (err) {
-                document.getElementById('view-panel').textContent = "Database sync error. Ensure your repository contains a 'wiki_data' directory path folder.";
+                document.getElementById('view-panel').textContent = "Failed to synchronize archive.";
             }
         }
 
@@ -133,7 +146,7 @@
             document.getElementById('view-panel').innerHTML = marked.parse(wikiData[title] || "");
             document.getElementById('edit-panel').classList.remove('active');
             document.getElementById('view-panel').classList.add('active');
-            document.getElementById('edit-btn').style.display = 'block';
+            if (isCreator) document.getElementById('edit-btn').style.display = 'block';
             renderSidebar();
         }
 
@@ -155,15 +168,12 @@
         window.cancelEdit = function() { loadPage(currentPage); }
         window.switchToEdit = switchToEdit;
 
-        // Formats submission values safely into native browser URL parameters
         window.submitToGitHub = function() {
             const title = document.getElementById('edit-title').value.trim().replace(/[^a-zA-Z0-9 ]/g, "");
             const content = document.getElementById('edit-text').value.trim();
-            if(!title || !content) return alert("Please fill out all fields!");
+            if(!title || !content) return alert("Fields cannot be empty!");
 
-            // Hands off the data to GitHub's file-creator page in a separate tab completely token-free
             const targetUrl = `https://github.com/${CONFIG.OWNER}/${CONFIG.REPO}/new/main/wiki_data?filename=${encodeURIComponent(title)}.md&value=${encodeURIComponent(content)}`;
-            
             window.open(targetUrl, '_blank');
             loadPage(currentPage);
         }
