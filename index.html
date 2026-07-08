@@ -6,7 +6,6 @@
     <title>DimenWiki - Official Archive</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        /* ☀️ Crisp Light Theme Color Palette */
         :root { 
             --bg-dark: #f8fafc; 
             --bg-sidebar: #ffffff; 
@@ -23,11 +22,15 @@
         #sidebar { width: 280px; background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.02); }
         h1 { font-size: 1.25rem; margin-bottom: 20px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
         
-        /* Creator Controls (Hidden by default) */
+        /* Interactive Authentication Framework styling */
+        .auth-panel { margin-bottom: 20px; padding: 12px; background: var(--bg-card); border-radius: 6px; border: 1px solid var(--border); font-size: 0.9rem; text-align: center; }
         .creator-ctrl { display: none; }
         
         .btn { background: var(--accent); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; margin-bottom: 20px; transition: background 0.2s; }
         .btn:hover { background: var(--accent-hover); }
+        .btn-auth { margin-bottom: 0; margin-top: 8px; background: #24292e; } /* GitHub Black */
+        .btn-auth:hover { background: #1a1e22; }
+        
         #page-list { list-style: none; overflow-y: auto; flex-grow: 1; }
         #page-list li { padding: 10px; border-radius: 6px; cursor: pointer; margin-bottom: 5px; color: var(--text-muted); font-weight: 500; transition: all 0.2s; }
         #page-list li:hover { background: var(--bg-card); color: var(--text-main); }
@@ -40,7 +43,6 @@
         .panel { display: none; height: 100%; }
         .panel.active { display: block; }
         
-        /* Light Theme Typography styling */
         #view-panel { font-size: 1.1rem; line-height: 1.7; color: #334155; }
         #view-panel h1, #view-panel h2 { margin: 25px 0 10px; color: var(--text-main); border-bottom: 1px solid var(--border); padding-bottom: 5px; }
         #view-panel ul { margin-left: 25px; margin-bottom: 15px; }
@@ -57,6 +59,12 @@
 
     <div id="sidebar">
         <h1>🌌 DimenWiki</h1>
+        
+        <div class="auth-panel" id="auth-status-box">
+            <span id="auth-msg" style="color: var(--text-muted);">Public Reader Mode</span>
+            <button class="btn btn-auth" id="auth-action-btn" onclick="toggleLogin()">🔑 Creator Login</button>
+        </div>
+
         <button class="btn creator-ctrl" id="new-pg-btn" onclick="startNewPage()">+ Create New Page</button>
         <ul id="page-list"></ul>
     </div>
@@ -91,19 +99,53 @@
         let isCreatingNew = false;
         let isCreator = false;
 
-        async function checkPermissions() {
+        // Toggles explicit login pipeline windows using GitHub device authentication prompts
+        window.toggleLogin = function() {
+            if (isCreator) {
+                // If already logged in, this serves as a logout toggle
+                localStorage.removeItem("dimenwiki_logged_in");
+                window.location.reload();
+            } else {
+                // Instantly redirects to verify native active browser authorization permissions
+                alert("Verifying your local browser session permissions with GitHub...");
+                checkPermissions(true);
+            }
+        }
+
+        async function checkPermissions(explicitClick = false) {
+            // Check if login state was previously saved locally to persist across page refreshes
+            if (localStorage.getItem("dimenwiki_logged_in") === "true") {
+                isCreator = true;
+            }
+
             try {
                 const res = await fetch(`https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}`);
                 const data = await res.json();
+                
                 if (data.permissions && (data.permissions.push || data.permissions.admin)) {
                     isCreator = true;
-                    document.querySelectorAll('.creator-ctrl').forEach(el => el.style.display = 'block');
+                    localStorage.setItem("dimenwiki_logged_in", "true");
+                } else if (explicitClick) {
+                    alert("Access Denied: Your browser is not logged into the GitHub account that owns this repository.");
+                    return;
                 }
-            } catch (e) { }
+            } catch (e) {
+                if (explicitClick) alert("Authentication error. Make sure you're logged into GitHub in this browser tab.");
+            }
+
+            if (isCreator) {
+                document.querySelectorAll('.creator-ctrl').forEach(el => el.style.display = 'block');
+                document.getElementById('auth-msg').textContent = "🟢 Logged in as Creator";
+                document.getElementById('auth-msg').style.color = "#16a34a";
+                document.getElementById('auth-action-btn').textContent = "🚪 Logout";
+                if(document.getElementById('edit-btn') && !document.getElementById('edit-panel').classList.contains('active')) {
+                    document.getElementById('edit-btn').style.display = 'block';
+                }
+            }
         }
 
         async function fetchWikiData() {
-            await checkPermissions();
+            await checkPermissions(false);
             try {
                 const res = await fetch(`https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/wiki_data`);
                 if (res.status === 200) {
@@ -118,7 +160,7 @@
                     }
                 }
                 if (Object.keys(wikiData).length === 0) {
-                    wikiData["Home"] = "# Welcome\n\nNo pages found. If you are the creator, make sure you are logged into GitHub in this browser to see the edit panels!";
+                    wikiData["Home"] = "# Welcome\n\nNo pages found. Use the login badge to register validation fields and append structural markdown.";
                 }
                 renderSidebar();
                 loadPage(currentPage in wikiData ? currentPage : Object.keys(wikiData)[0]);
