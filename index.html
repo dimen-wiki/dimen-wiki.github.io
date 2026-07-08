@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DimenWiki - Custom Dashboard</title>
+    <title>DimenWiki Archive Cluster</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root { 
@@ -20,11 +20,10 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg-dark); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
         
-        /* Sidebar Configuration */
         #sidebar { width: 290px; background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.02); }
         h1 { font-size: 1.25rem; margin-bottom: 15px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
         
-        /* Custom Internal Login Module */
+        /* Custom Internal Saved Login Module */
         .custom-login-box { padding: 12px; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px; font-size: 0.85rem; }
         .login-input { width: 100%; padding: 6px 10px; border: 1px solid var(--border); border-radius: 4px; margin-top: 5px; margin-bottom: 8px; font-size: 0.8rem; }
         
@@ -39,7 +38,6 @@
         #page-list li:hover { background: var(--bg-card); color: var(--text-main); }
         #page-list li.active { background: #e0e7ff; color: var(--accent); }
         
-        /* Work Panels */
         #main-content { flex-grow: 1; display: flex; flex-direction: column; height: 100%; background: var(--bg-dark); }
         #top-bar { padding: 20px 40px; background: var(--bg-sidebar); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         #current-title { font-size: 2rem; font-weight: 700; color: var(--text-main); }
@@ -47,14 +45,12 @@
         .panel { display: none; height: 100%; }
         .panel.active { display: block; }
         
-        /* Rendered Markdown Area */
         #view-panel { font-size: 1.1rem; line-height: 1.7; color: #334155; }
         #view-panel h1, #view-panel h2 { margin: 25px 0 10px; color: var(--text-main); border-bottom: 1px solid var(--border); padding-bottom: 5px; }
         #view-panel ul { margin-left: 25px; margin-bottom: 15px; }
         #view-panel blockquote { background: var(--bg-card); border-left: 4px solid var(--accent); padding: 15px; margin: 20px 0; font-style: italic; color: var(--text-muted); border-radius: 0 6px 6px 0; }
         #view-panel code { background: #fee2e2; padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #dc2626; }
         
-        /* Editor Mode */
         #edit-panel { display: flex; flex-direction: column; gap: 15px; }
         .input-field { background: var(--bg-sidebar); border: 1px solid var(--border); color: var(--text-main); padding: 12px; border-radius: 6px; font-size: 1rem; width: 100%; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); }
         textarea.input-field { resize: none; flex-grow: 1; min-height: 400px; font-family: monospace; }
@@ -64,17 +60,18 @@
 <body>
 
     <div id="sidebar">
-        <h1>🌌 DimenWiki</h1>
+        <h1 id="wiki-brand">🌌 DimenWiki</h1>
         
         <div class="custom-login-box" id="login-container">
             <div id="logged-out-view">
-                <span style="font-weight: 600; color: var(--text-muted);">🔒 Creator Dashboard</span>
-                <input type="password" id="token-input" class="login-input" placeholder="Paste Access Token Key...">
-                <button class="btn btn-sm" style="width: 100%;" onclick="attemptLogin()">Verify Key</button>
+                <span style="font-weight: 600; color: var(--text-muted);">🔒 Admin Access</span>
+                <input type="text" id="username-input" class="login-input" placeholder="Username">
+                <input type="password" id="password-input" class="login-input" placeholder="Password PIN">
+                <button class="btn btn-sm" style="width: 100%;" onclick="attemptLogin()">Log In</button>
             </div>
             <div id="logged-in-view" style="display: none; text-align: center;">
-                <span style="font-weight: 600; color: #16a34a; display: block; margin-bottom: 8px;">🟢 Creator Workspace Active</span>
-                <button class="btn btn-sm" style="background: #ef4444;" onclick="logoutCreator()">Lock Workspace</button>
+                <span id="welcome-msg" style="font-weight: 600; color: #16a34a; display: block; margin-bottom: 8px;">🟢 Session Active</span>
+                <button class="btn btn-sm" style="background: #ef4444;" onclick="logoutCreator()">Lock Account</button>
             </div>
         </div>
 
@@ -84,41 +81,54 @@
 
     <div id="main-content">
         <div id="top-bar">
-            <h2 id="current-title">Loading...</h2>
+            <h2 id="current-title">Loading Cluster...</h2>
             <button id="edit-btn" class="btn creator-ctrl" style="margin:0; width:auto;" onclick="switchToEdit()">Edit Page</button>
         </div>
         <div id="content-area">
-            <div id="view-panel" class="panel active">Synchronizing database metrics...</div>
+            <div id="view-panel" class="panel active">Parsing sub-archive configuration paths...</div>
             
             <div id="edit-panel" class="panel">
                 <input type="text" id="edit-title" class="input-field" placeholder="Page Title">
-                <textarea id="edit-text" class="input-field" placeholder="Write page structure in Markdown format..."></textarea>
+                <textarea id="edit-text" class="input-field" placeholder="Write document structure in Markdown format..."></textarea>
                 <div class="button-group">
                     <button class="btn" style="background:transparent; border:1px solid var(--border); color: var(--text-muted);" onclick="cancelEdit()">Cancel</button>
-                    <button class="btn" style="width:auto;" onclick="savePageDirectly()">Save Page Changes</button>
+                    <button class="btn" style="width:auto; background: #94a3b8; cursor: not-allowed;" disabled title="Saving changes is currently locked or disabled.">💾 Saving Disabled</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script type="module">
+        // Automatically extracts the subdomain names directly from your browser URL!
+        // E.g. "potassium.dimen-wiki.github.io" automatically switches targets to the "potassium" repository contents.
+        const host = window.location.hostname;
+        const parts = host.split('.');
+        
         const CONFIG = {
-            OWNER: "dimenwiki", 
-            REPO: "dimenwiki.github.io"
+            OWNER: "dimen-wiki", 
+            REPO: (parts.length >= 4 && parts[0] !== "www") ? parts[0] : "main-hub"
+        };
+
+        // Custom Login Configuration Keys
+        const AUTH_KEYS = {
+            USER: "admin",
+            PASS: "dimen123" // 👈 Set your custom local login password here!
         };
 
         let wikiData = {};
         let currentPage = "Home";
         let isCreatingNew = false;
-        let activeToken = null;
+        let isUserAuthenticated = false;
 
-        // Validates internal authentication locks locally
+        document.getElementById('wiki-brand').textContent = `🌌 ${CONFIG.REPO.toUpperCase()}`;
+
         function checkSession() {
-            const savedToken = localStorage.getItem("dimenwiki_secure_token");
-            if (savedToken) {
-                activeToken = savedToken;
+            const loggedInState = localStorage.getItem("dimenwiki_custom_auth");
+            if (loggedInState === "true") {
+                isUserAuthenticated = true;
                 document.getElementById('logged-out-view').style.display = 'none';
                 document.getElementById('logged-in-view').style.display = 'block';
+                document.getElementById('welcome-msg').textContent = `🟢 Active: ${AUTH_KEYS.USER}`;
                 document.querySelectorAll('.creator-ctrl').forEach(el => el.style.display = 'block');
                 return true;
             }
@@ -126,31 +136,25 @@
         }
 
         window.attemptLogin = function() {
-            const tokenValue = document.getElementById('token-input').value.trim();
-            if (!tokenValue) return alert("Please input your authorization key!");
+            const userVal = document.getElementById('username-input').value.trim();
+            const passVal = document.getElementById('password-input').value.trim();
             
-            // Instantly check if token works by running an API call test
-            fetch(`https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}`, {
-                headers: { 'Authorization': `token ${tokenValue}` }
-            }).then(res => {
-                if(res.ok) {
-                    localStorage.setItem("dimenwiki_secure_token", tokenValue);
-                    window.location.reload();
-                } else {
-                    alert("Invalid Token. Confirm the access scopes of your key settings.");
-                }
-            }).catch(() => alert("Connection error. Try again."));
+            if (userVal === AUTH_KEYS.USER && passVal === AUTH_KEYS.PASS) {
+                localStorage.setItem("dimenwiki_custom_auth", "true");
+                window.location.reload();
+            } else {
+                alert("Incorrect login credentials.");
+            }
         }
 
         window.logoutCreator = function() {
-            localStorage.removeItem("dimenwiki_secure_token");
+            localStorage.removeItem("dimenwiki_custom_auth");
             window.location.reload();
         }
 
         async function fetchWikiData() {
-            const hasAccess = checkSession();
+            checkSession();
             try {
-                // Read content directory data openly
                 const res = await fetch(`https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/wiki_data`);
                 if (res.status === 200) {
                     const files = await res.json();
@@ -164,12 +168,12 @@
                     }
                 }
                 if (Object.keys(wikiData).length === 0) {
-                    wikiData["Home"] = "# Welcome to DimenWiki\n\nLogin using your dashboard token module key to append database folders.";
+                    wikiData["Home"] = `# Welcome to ${CONFIG.REPO.toUpperCase()}\n\nThis subdomain archive has successfully loaded. Access your dashboard box to interact with panels.`;
                 }
                 renderSidebar();
                 loadPage(currentPage in wikiData ? currentPage : Object.keys(wikiData)[0]);
             } catch (err) {
-                document.getElementById('view-panel').textContent = "Failed to sync archive elements.";
+                document.getElementById('view-panel').textContent = "Failed to sync directory parameters. Verify your 'wiki_data' structural layouts.";
             }
         }
 
@@ -192,7 +196,7 @@
             document.getElementById('view-panel').innerHTML = marked.parse(wikiData[title] || "");
             document.getElementById('edit-panel').classList.remove('active');
             document.getElementById('view-panel').classList.add('active');
-            if (activeToken) document.getElementById('edit-btn').style.display = 'block';
+            if (isUserAuthenticated) document.getElementById('edit-btn').style.display = 'block';
             renderSidebar();
         }
 
@@ -213,50 +217,6 @@
 
         window.cancelEdit = function() { loadPage(currentPage); }
         window.switchToEdit = switchToEdit;
-
-        // Direct database push mechanism via active validated session keys
-        window.savePageDirectly = async function() {
-            const title = document.getElementById('edit-title').value.trim().replace(/[^a-zA-Z0-9 ]/g, "");
-            const content = document.getElementById('edit-text').value.trim();
-            if(!title || !content) return alert("All custom data fields must have content inputs!");
-
-            document.getElementById('view-panel').textContent = "Pushing live file updates directly into database clusters...";
-            document.getElementById('edit-panel').classList.remove('active');
-            document.getElementById('view-panel').classList.add('active');
-
-            const path = `wiki_data/${title}.md`;
-            let sha = undefined;
-
-            try {
-                const checkRes = await fetch(`https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/${path}`);
-                if (checkRes.ok) {
-                    const checkData = await checkRes.json();
-                    sha = checkData.sha;
-                }
-            } catch (e) {}
-
-            const res = await fetch(`https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/${path}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `token ${activeToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: `DimenWiki Update via Custom Dashboard: ${title}`,
-                    content: btoa(unescape(encodeURIComponent(content))),
-                    sha: sha
-                })
-            });
-
-            if (res.ok) {
-                wikiData[title] = content;
-                currentPage = title;
-                fetchWikiData();
-            } else {
-                alert("Database update failure. Validate the scopes of your dashboard key.");
-                loadPage(currentPage);
-            }
-        }
 
         fetchWikiData();
     </script>
